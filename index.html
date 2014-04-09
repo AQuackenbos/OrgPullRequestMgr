@@ -1,0 +1,88 @@
+<!doctype html>
+<html>
+	<head>
+		<title>Active Pull Requests</title>
+		<script type="text/javascript" src="//ajax.googleapis.com/ajax/libs/jquery/2.1.0/jquery.min.js"></script>
+		<link rel="stylesheet" href="style.css"/>
+		<link rel="shortcut icon" type="image/x-icon" href="/favicon.ico"/>
+	</head>
+	<body>
+		<div id="controls">Pull Requests // <a href="#open" class="control-link active">open</a> | <a href="#closed" class="control-link">closed</a></div>
+		<div id="content">
+			<img src="ajax.gif" id="ajax"/>
+		</div>
+		<script type="text/javascript">
+		var token = ""; //Create a Personal Access Token in github to use here
+		var user = ""; //Organization you want to pull repos from
+		var repos = [];
+		var pState = window.location.hash.replace('#','');
+		
+		if(pState == '') pState = 'open';
+		
+		$(function(){
+			$('.control-link').on('click',function(){
+				pState = this.href.replace('#','');
+				
+				renderList();
+			});
+		});
+		
+		renderList();
+		
+		function renderList()
+		{
+			
+			$.ajax({
+				//url: "https://api.github.com/repos/"+user+"/"+item+"/pulls",
+				url: "https://api.github.com/orgs/"+user+"/repos",
+				data: {
+					access_token: token
+				},
+				dataType: "json",
+				success: function (d)
+				{
+					$('#content').empty();
+					repos = [];
+					
+					if(d.length < 1) return true;
+					
+					$(d).each(function(i,repo){
+						repos.push(repo.name);
+					});
+							
+					$(repos).each(function(index,item){
+						$.ajax({
+							url: "https://api.github.com/repos/"+user+"/"+item+"/pulls",
+							data: {
+								access_token: token,
+								state: pState	
+							},
+							dataType: "json",
+							success: function (d)
+							{
+								if(d.length < 1) return true;
+								
+								$("<h2>",{class:"repo",id:"repo-"+item}).html(item + ' ('+d.length+')').appendTo("#content").on('click',function(){ $(this).next().toggle() });
+								var list = $("<ul>",{class:"pull-list",id:"pulls-"+item}).appendTo("#content");
+								if(pState == 'closed')
+									list.hide();
+								$(d).each(function(i,pull){
+									var container = $("<li>",{class:"pull"});
+									$("<a>",{href:pull.html_url,class:"pull-link"}).html("#"+pull.number+" "+pull.title).appendTo(container);
+									var date = new Date(pull.created_at);
+									$("<div>",{class:"pull-created"}).html('<span class="user">'+pull.user.login+"</span> on "+date.getFullYear()+"/"+date.getMonth()+"/"+date.getDate()).appendTo(container);
+									$("<div>",{class:"pull-data"}).html('<span class="highlight">'+pull.base.ref+'</span> ... <span class="highlight">'+pull.head.ref+'</span>').appendTo(container);
+									$("<div>",{class:"pull-comment"}).html(pull.body).appendTo(container);
+									container.appendTo(list);
+								});
+							}  
+						});
+					});
+				}  
+			});
+		}
+		
+		
+		</script>
+	</body>
+</html>
