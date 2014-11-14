@@ -12,8 +12,8 @@
 			<img src="ajax.gif" id="ajax"/>
 		</div>
 		<script type="text/javascript">
-		var token = ""; //Create a Personal Access Token in github to use here
-		var user = ""; //Organization you want to pull repos from
+		var token = "194ebbd0d62f28dfa15892f3847d53edeb54b53e"; //Create a Personal Access Token in github to use here
+		var user = "Sitesquad";
 		var repos = [];
 		var pState = window.location.hash.replace('#','');
 		
@@ -36,7 +36,8 @@
 				//url: "https://api.github.com/repos/"+user+"/"+item+"/pulls",
 				url: "https://api.github.com/orgs/"+user+"/repos",
 				data: {
-					access_token: token
+					access_token: token,
+					per_page: 100
 				},
 				dataType: "json",
 				success: function (d)
@@ -49,6 +50,7 @@
 					$(d).each(function(i,repo){
 						repos.push(repo.name);
 					});
+							
 							
 					$(repos).each(function(index,item){
 						$.ajax({
@@ -71,7 +73,7 @@
 									$("<a>",{href:pull.html_url,class:"pull-link"}).html("#"+pull.number+" "+pull.title).appendTo(container);
 									var date = new Date(pull.created_at);
 									$("<div>",{class:"pull-created"}).html('<span class="user">'+pull.user.login+"</span> on "+date.getFullYear()+"/"+date.getMonth()+"/"+date.getDate()).appendTo(container);
-									$("<div>",{class:"pull-data"}).html('<span class="highlight">'+pull.base.ref+'</span> ... <span class="highlight">'+pull.head.ref+'</span>').appendTo(container);
+									$("<div>",{class:"pull-data"}).html('<span class="highlight">'+pull.base.label+'</span> ... <span class="highlight">'+pull.head.label+'</span>').appendTo(container);
 									$("<div>",{class:"pull-comment"}).html(pull.body).appendTo(container);
 									container.appendTo(list);
 								});
